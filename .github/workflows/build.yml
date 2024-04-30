@@ -29,11 +29,11 @@ on:
         default: '1.1.1f'
       version:
         description: 'Image version'
-        default: '1.25.3.1-bookworm'
         required: true
+        default: '1.25.3.1-bookworm'
 
 jobs:
-  docker:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -92,7 +92,7 @@ jobs:
           file: Dockerfile
           platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/s390x
           push: true
-          build-args:
+          build-args: |
             RESTY_VERSION=${{ github.event.inputs.resty_version }}
             RESTY_PCRE_VERSION=${{ github.event.inputs.resty_pcre_version }}
             RESTY_LUAROCKS_VERSION=${{ github.event.inputs.resty_luarocks_version }}
