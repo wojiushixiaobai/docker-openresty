@@ -1,0 +1,109 @@
+name: Build Custom
+
+on:
+  workflow_dispatch:
+    inputs:
+      resty_version:
+        description: 'OpenResty version'
+        required: true
+        default: '1.25.3.1'
+      resty_pcre_version:
+        description: 'PCRE version'
+        required: true
+        default: '8.45'
+      resty_luarocks_version:
+        description: 'LuaRocks version'
+        required: true
+        default: '3.11.0'
+      resty_openssl_url_base:
+        description: 'OpenSSL URL base'
+        required: true
+        default: 'https://www.openssl.org/source/old/1.1.1'
+      resty_openssl_version:
+        description: 'OpenSSL version'
+        required: true
+        default: '1.1.1w'
+      resty_openssl_patch_version:
+        description: 'OpenSSL patch version'
+        required: true
+        default: '1.1.1f'
+      version:
+        description: 'Image version'
+        default: '1.25.3.1-bookworm'
+        required: true
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Cache
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: |
+            var-cache-apt
+            var-lib-apt
+            resty-ccache
+          key: cache-openresty
+
+      - name: inject cache into docker
+        uses: reproducible-containers/buildkit-cache-dance@v3.1.0
+        with:
+          cache-map: |
+            {
+              "var-cache-apt": "/var/cache/apt",
+              "var-lib-apt": "/var/lib/apt",
+              "resty-ccache": "/root/.cache/ccache"
+            }
+          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/s390x
+          push: true
+          build-args:
+            RESTY_VERSION=${{ github.event.inputs.resty_version }}
+            RESTY_PCRE_VERSION=${{ github.event.inputs.resty_pcre_version }}
+            RESTY_LUAROCKS_VERSION=${{ github.event.inputs.resty_luarocks_version }}
+            RESTY_OPENSSL_URL_BASE=${{ github.event.inputs.resty_openssl_url_base }}
+            RESTY_OPENSSL_VERSION=${{ github.event.inputs.resty_openssl_version }}
+            RESTY_OPENSSL_PATCH_VERSION=${{ github.event.inputs.resty_openssl_patch_version }}
+          tags: |
+            ${{ github.repository_owner }}/openresty:latest
+            ${{ github.repository_owner }}/openresty:${{ github.event.inputs.version }}
+            ghcr.io/${{ github.repository_owner }}/openresty:latest
+            ghcr.io/${{ github.repository_owner }}/openresty:${{ github.event.inputs.version }}
+          outputs: type=image,oci-mediatypes=true,compression=zstd,compression-level=3,force-compression=true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
