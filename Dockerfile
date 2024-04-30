@@ -114,12 +114,6 @@ RUN set -ex \
     && curl -fSL https://github.com/openresty/docker-openresty/raw/master/nginx.conf -o ${PREFIX_DIR}/nginx/conf/nginx.conf \
     && curl -fSL https://github.com/openresty/docker-openresty/raw/master/nginx.vh.default.conf -o /etc/nginx/conf.d/default.conf
 
-ENV PATH=$PATH:${PREFIX_DIR}/luajit/bin:${PREFIX_DIR}/nginx/sbin:${PREFIX_DIR}/bin
-
-RUN set -ex \
-    && luarocks install luafilesystem \
-    && luarocks install lsqlite3
-
 FROM debian:bookworm-slim
 
 ARG PREFIX_DIR=/usr/local/openresty
