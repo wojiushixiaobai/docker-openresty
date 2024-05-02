@@ -30,11 +30,11 @@ install_from_source() {
 
     # Patch OpenSSL
     if echo "$SOURCE_DIR" | grep -q "openssl"; then
-        if [ $(echo ${RESTY_OPENSSL_VERSION} | cut -c 1-5) = "1.1.1" ] ; then
+        if [ $(echo ${RESTY_OPENSSL_VERSION} | cut -c 1-5) = "1.1.1" ]; then
             echo 'patching OpenSSL 1.1.1 for OpenResty'
             curl -s https://raw.githubusercontent.com/openresty/openresty/master/patches/openssl-${RESTY_OPENSSL_PATCH_VERSION}-sess_set_get_cb_yield.patch | patch -p1
         fi
-        if [ $(echo ${RESTY_OPENSSL_VERSION} | cut -c 1-5) = "1.1.0" ] ; then
+        if [ $(echo ${RESTY_OPENSSL_VERSION} | cut -c 1-5) = "1.1.0" ]; then
             echo 'patching OpenSSL 1.1.0 for OpenResty'
             curl -s https://raw.githubusercontent.com/openresty/openresty/ed328977028c3ec3033bc25873ee360056e247cd/patches/openssl-1.1.0j-parallel_build_fix.patch | patch -p1
             curl -s https://raw.githubusercontent.com/openresty/openresty/master/patches/openssl-${RESTY_OPENSSL_PATCH_VERSION}-sess_set_get_cb_yield.patch | patch -p1
@@ -54,7 +54,7 @@ install_from_source() {
         exit 1
     fi
 
-    make && make install
+    make -j$(nproc) && make install
 
 }
 
@@ -66,7 +66,11 @@ case $BUILD_ARCHITECTURE in
         export PCRE_OPTS_OVERRIDES="--enable-jit"
         export OPENRESTY_OPTS_OVERRIDES="--with-pcre-jit"
         ;;
+    armv7l)
+        export OPENSSL_OPTS_OVERRIDES="-march=armv7-a+fp"
+        ;;
     *)
+        export OPENSSL_OPTS_OVERRIDES=""
         export PCRE_OPTS_OVERRIDES=""
         export OPENRESTY_OPTS_OVERRIDES=""
         ;;
@@ -76,7 +80,7 @@ esac
 # Build and install dependencies
 #
 
-install_from_source "${RESTY_OPENSSL_URL_BASE}/openssl-${RESTY_OPENSSL_VERSION}.tar.gz" "$RESTY_OPENSSL_VERSION" $OPENSSL_OPTS
+install_from_source "${RESTY_OPENSSL_URL_BASE}/openssl-${RESTY_OPENSSL_VERSION}.tar.gz" "$RESTY_OPENSSL_VERSION" $OPENSSL_OPTS $OPENSSL_OPTS_OVERRIDES
 install_from_source "https://downloads.sourceforge.net/project/pcre/pcre/${RESTY_PCRE_VERSION}/pcre-${RESTY_PCRE_VERSION}.tar.gz" "$RESTY_PCRE_VERSION" $PCRE_OPTS $PCRE_OPTS_OVERRIDES
 install_from_source "https://openresty.org/download/openresty-${RESTY_VERSION}.tar.gz" "$RESTY_VERSION" $OPENRESTY_OPTS $OPENRESTY_OPTS_OVERRIDES
 install_from_source "https://luarocks.github.io/luarocks/releases/luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz" "$RESTY_LUAROCKS_VERSION" $LUAROCKS_OPTS
