@@ -118,8 +118,6 @@ FROM debian:bookworm-slim
 
 ARG PREFIX_DIR=/usr/local/openresty
 
-ENV LANG="en_US.UTF-8"
-
 ARG RUNTIME_DEPENDENCIES="\
         ca-certificates"
 
@@ -155,7 +153,7 @@ ENV LUA_CPATH="${PREFIX_DIR}/site/lualib/?.so;${PREFIX_DIR}/lualib/?.so;./?.so;/
 COPY --from=builder /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder ${PREFIX_DIR}/nginx/conf/nginx.conf ${PREFIX_DIR}/nginx/conf/nginx.conf
 
-CMD ["${PREFIX_DIR}/bin/openresty", "-g", "daemon off;"]
+CMD ["/usr/local/openresty/bin/openresty", "-g", "daemon off;"]
 
 # Use SIGQUIT instead of default SIGTERM to cleanly drain requests
 # See https://github.com/openresty/docker-openresty/blob/master/README.md#tips--pitfalls
