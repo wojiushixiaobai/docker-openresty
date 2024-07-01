@@ -31,6 +31,10 @@ on:
         description: 'Image version'
         required: true
         default: '1.25.3.1-bookworm'
+      full_version:
+        description: 'Full image version'
+        required: true
+        default: '1.25.3.1-5-bookworm'
 
 jobs:
   build:
@@ -102,8 +106,10 @@ jobs:
           tags: |
             ${{ github.repository_owner }}/openresty:latest
             ${{ github.repository_owner }}/openresty:${{ github.event.inputs.version }}
+            ${{ github.repository_owner }}/openresty:${{ github.event.inputs.full_version }}
             ghcr.io/${{ github.repository_owner }}/openresty:latest
             ghcr.io/${{ github.repository_owner }}/openresty:${{ github.event.inputs.version }}
+            ghcr.io/${{ github.repository_owner }}/openresty:${{ github.event.inputs.full_version }}
           outputs: type=image,oci-mediatypes=true,compression=zstd,compression-level=3,force-compression=true
           cache-from: type=gha
           cache-to: type=gha,mode=max
