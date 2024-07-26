@@ -35,7 +35,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 ARG BUILD_DIR=/tmp/openresty
 ARG PREFIX_DIR=/usr/local/openresty
 
-ARG RESTY_VERSION="1.25.3.1"
+ARG RESTY_VERSION="1.25.3.2"
 ARG RESTY_LUAROCKS_VERSION="3.11.0"
 ARG RESTY_OPENSSL_VERSION="1.1.1w"
 ARG RESTY_OPENSSL_PATCH_VERSION="1.1.1f"

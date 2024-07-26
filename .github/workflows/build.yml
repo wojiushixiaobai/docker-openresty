@@ -6,7 +6,7 @@ on:
       resty_version:
         description: 'OpenResty version'
         required: true
-        default: '1.25.3.1'
+        default: '1.25.3.2'
       resty_pcre_version:
         description: 'PCRE version'
         required: true
@@ -30,11 +30,11 @@ on:
       version:
         description: 'Image version'
         required: true
-        default: '1.25.3.1-bookworm'
+        default: '1.25.3.2-bookworm'
       full_version:
         description: 'Full image version'
         required: true
-        default: '1.25.3.1-5-bookworm'
+        default: '1.25.3.2-0-bookworm'
 
 jobs:
   build:
