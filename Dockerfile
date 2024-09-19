@@ -3,7 +3,6 @@ ARG TARGETARCH
 
 ARG BUILD_DEPENDENCIES="\
         build-essential \
-        ccache \
         gettext-base \
         libgd-dev \
         libgeoip-dev \
@@ -18,10 +17,13 @@ ARG BUILD_DEPENDENCIES="\
 
 ARG TOOLS="\
         ca-certificates \
+        ccache \
         curl \
         git \
         unzip \
         wget"
+
+ENV USE_CCACHE=1
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
@@ -97,11 +99,9 @@ ARG LUAROCKS_OPTS="\
 
 ADD build-all.sh list-dependencies.sh ${BUILD_DIR}/
 
-ENV USE_CCACHE=1 \
-    CC="ccache gcc" \
-    CXX="ccache g++"
+ENV PATH=/usr/lib/ccache:${PATH}
 
-RUN --mount=type=cache,target=/root/.cache/ccache,sharing=locked \
+RUN --mount=type=cache,target=/root/.cache/ccache \
     ${BUILD_DIR}/build-all.sh
 
 RUN ${BUILD_DIR}/list-dependencies.sh \
