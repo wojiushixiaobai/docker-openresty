@@ -55,26 +55,13 @@ jobs:
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
-      - name: Cache
+      - name: Cache Docker layers
         uses: actions/cache@v4
-        id: cache
         with:
-          path: |
-            var-cache-apt
-            var-lib-apt
-            resty-ccache
-          key: cache-openresty
-
-      - name: inject cache into docker
-        uses: reproducible-containers/buildkit-cache-dance@v3.1.0
-        with:
-          cache-map: |
-            {
-              "var-cache-apt": "/var/cache/apt",
-              "var-lib-apt": "/var/lib/apt",
-              "resty-ccache": "/root/.cache/ccache"
-            }
-          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -111,5 +98,10 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/openresty:${{ github.event.inputs.version }}
             ghcr.io/${{ github.repository_owner }}/openresty:${{ github.event.inputs.full_version }}
           outputs: type=image,oci-mediatypes=true,compression=zstd,compression-level=3,force-compression=true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
